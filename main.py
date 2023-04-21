@@ -1,5 +1,6 @@
 from Board import Board
 
+
 WHITE = 1
 BLACK = 2
 
@@ -56,3 +57,5 @@ def main():
             print('Ход успешен')
         else:
             print('Координаты некорректы! Попробуйте другой ход!')
+
+

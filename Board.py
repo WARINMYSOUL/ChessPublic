@@ -46,6 +46,10 @@ class Board:
 
         self.color = WHITE
         self.field = [[None] * 8 for row in range(8)]
+        self.white_king_in_check = False
+        self.black_king_in_check = False
+        self.white_king_in_mate = False
+        self.black_king_in_mate = False
 
         self.field[0] = [
             Rook(WHITE), Knight(WHITE), Bishop(WHITE), Queen(WHITE),
@@ -228,4 +232,86 @@ class Board:
             self.field[row2][col2] = Knight(p.color)
         # Меняет ход
         self.color = opponent(self.color)
+        return True
+
+    def set_piece(self, row, col, piece):
+        self.field[row][col] = piece
+
+    def undo_move(self, backup):
+        """Отменяет последний сделанный ход, восстанавливая доску из резервной копии."""
+        ((r, c), piece1, piece2) = backup
+        self.set_piece(r, c, piece1)
+        self.set_piece(*piece2)
+
+    def find_king(self, color):
+        for r in range(8):
+            for c in range(8):
+                piece = self.get_piece(r, c)
+                if isinstance(piece, King) and piece.color == color:
+                    return (r, c)
+        # Если король не найден (например, он был взят), возвращаем None
+        return None
+
+    def is_king_in_check(self, color):
+        # Найдем положение короля нужного цвета
+        king_pos = self.find_king(color)
+        if king_pos is None:
+            # Если короля нет на доске, то он не может быть под шахом
+            return False
+
+        # Проверим, может ли любая из фигур противника атаковать короля
+        for r in range(8):
+            for c in range(8):
+                piece = self.get_piece(r, c)
+                if piece is not None and piece.color != color:
+                    if piece.can_attack(self, r, c, *king_pos):
+                        return True
+        return False
+
+    def is_king_in_mate(self, color):
+        # Если король не под шахом, то и мат быть не может
+        if not self.is_king_in_check(color):
+            return False
+
+        # Попробуем каждым ходом избежать шаха
+        for r in range(8):
+            for c in range(8):
+                piece = self.get_piece(r, c)
+                if piece is not None and piece.color == color:
+                    for r1 in range(8):
+                        for c1 in range(8):
+                            if piece.can_move(self, r, c, r1, c1):
+                                # Сделаем ход и проверим, не подвергнется ли король шаху
+                                backup = self.move_piece(r, c, r1, c1)
+                                in_check = self.is_king_in_check(color)
+                                self.undo_move(backup)
+
+                                # Если ход помогает избежать шаха, то это не мат
+                                if not in_check:
+                                    return False
+
+        # Если нет ни одного возможного хода, который мог бы помочь избежать шаха, то это мат
+        return True
+
+    def is_stalemate(self, color):
+        # Если король под шахом, то это не пат
+        if self.is_king_in_check(color):
+            return False
+
+        # Проверим, есть ли возможные ходы для каждой фигуры данного цвета
+        for r in range(8):
+            for c in range(8):
+                piece = self.get_piece(r, c)
+                if piece is not None and piece.color == color:
+                    for r1 in range(8):
+                        for c1 in range(8):
+                            if piece.can_move(self, r, c, r1, c1):
+                                # Сделаем ход и проверим, не подвергнется ли король шаху
+                                backup = self.move_piece(r, c, r1, c1)
+                                in_check = self.is_king_in_check(color)
+                                self.undo_move(backup)
+                                if not in_check:
+                                    return False
+
+        # Если нет возможных ходов, то это пат
         return True
