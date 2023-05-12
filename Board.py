@@ -153,14 +153,18 @@ class Board:
         if fig_k.get_color() != fig_r.get_color():
             return False
 
-        # Проверка: можно ли осуществить рокировку?
+        # Проверка: можно ли осуществить рокировку и поля между королем и ладьей не под атакой
         if fig_r.can_move(self, r[0], r[1], k[0], k[1]):
-            self.field[r[0]][r[1]] = None
-            self.field[k[0]][k[1]] = None
-            fig_r.has_moved = False
-            fig_k.has_moved = False
-            self.field[r[0]][3] = fig_r
-            self.field[k[0]][2] = fig_k
+            if not self.is_under_attack(r[0], r[1] - 1, self.color) and not self.is_under_attack(r[0], r[1] - 2,
+                                                                                                 self.color):
+                self.field[r[0]][r[1]] = None
+                self.field[k[0]][k[1]] = None
+                fig_r.has_moved = False
+                fig_k.has_moved = False
+                self.field[r[0]][3] = fig_r
+                self.field[k[0]][2] = fig_k
+            else:
+                return False
         else:
             return False
         # Меняем текущий цвет
@@ -191,14 +195,17 @@ class Board:
         if fig_k.get_color() != fig_r.get_color():
             return False
 
-        # Проверка: можно ли осуществить рокировку?
+        # Проверка: можно ли осуществить рокировку и поля между королем и ладьей не под атакой
         if fig_r.can_move(self, r[0], r[1], k[0], k[1]):
-            self.field[r[0]][r[1]] = None
-            self.field[k[0]][k[1]] = None
-            fig_r.has_moved = False
-            fig_k.has_moved = False
-            self.field[r[0]][5] = fig_r
-            self.field[k[0]][6] = fig_k
+            if not self.is_under_attack(r[0], r[1] + 1, self.color):
+                self.field[r[0]][r[1]] = None
+                self.field[k[0]][k[1]] = None
+                fig_r.has_moved = False
+                fig_k.has_moved = False
+                self.field[r[0]][5] = fig_r
+                self.field[k[0]][6] = fig_k
+            else:
+                return False
         else:
             return False
         # Меняем текущий цвет
